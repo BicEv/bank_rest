@@ -3,6 +3,8 @@ package com.example.bankcards.entity;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.example.bankcards.util.CardNumberConverter;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -33,7 +35,7 @@ public class Card {
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
 
-    @Convert()
+    @Convert(converter = CardNumberConverter.class)
     @Column(name = "number_encrypted", length = 4096)
     private String number;
 
