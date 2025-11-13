@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.UserRequest;
@@ -28,6 +29,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public UserDto createUser(UserRequest userRequest) {
         if (userRepository.existsByUsername(userRequest.username())) {
             throw new DuplicateUsernameException("Username already in use: " + userRequest.username());
@@ -64,6 +66,7 @@ public class UserService {
         return users.map(this::toDto);
     }
 
+    @Transactional
     public UserDto updateUser(Long userId, UserRequest userRequest) {
         User foundUser = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found, id: " + userId));
@@ -86,6 +89,7 @@ public class UserService {
         return toDto(updatedUser);
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
         userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found, id: " + userId));
         userRepository.deleteById(userId);

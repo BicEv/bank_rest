@@ -1,6 +1,7 @@
 package com.example.bankcards.entity;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 
 import com.example.bankcards.util.CardNumberConverter;
@@ -57,7 +58,7 @@ public class Card {
     private CardStatus status = CardStatus.ACTIVE;
 
     @Column(precision = 19, scale = 2, nullable = false)
-    private BigDecimal balance = BigDecimal.ZERO;
+    private BigDecimal balance = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
     public void setPlainNumber(String plainNumber) {
         this.number = plainNumber;
