@@ -2,6 +2,7 @@ package com.example.bankcards.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -97,18 +98,17 @@ public class CardService {
     }
 
     @Transactional
-    public void transfer(UUID fromCardId, UUID toCardId, BigDecimal amount, Long userId) {
+    public void transfer(UUID fromCardId, UUID toCardId, BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0)
             throw new IllegalArgumentException("Transfer amount must be positive");
 
         User currentUser = getCurrentUser();
-        if (!currentUser.getId().equals(userId))
-            throw new SecurityException("Access denied");
 
         Card fromCard = getCardOrThrow(fromCardId);
         Card toCard = getCardOrThrow(toCardId);
 
-        if (!fromCard.getOwner().getId().equals(userId) || !toCard.getOwner().getId().equals(userId)) {
+        if (!fromCard.getOwner().getId().equals(currentUser.getId())
+                || !toCard.getOwner().getId().equals(currentUser.getId())) {
             throw new SecurityException("You can transfer only between your own cards");
         }
 
@@ -124,8 +124,8 @@ public class CardService {
         fromCard.setBalance(fromCard.getBalance().subtract(scaledAmount));
         toCard.setBalance(toCard.getBalance().add(scaledAmount));
 
-        cardRepository.save(fromCard);
-        cardRepository.save(toCard);
+        cardRepository.saveAll(List.of(fromCard, toCard));
+
         logger.debug("Transferred {} from card {} to card {}", scaledAmount, fromCardId, toCardId);
     }
 
