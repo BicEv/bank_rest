@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -80,6 +81,11 @@ public class CardServiceTest {
         card.setExpiryYear(2030);
         card.setBalance(BigDecimal.valueOf(100));
         card.setStatus(CardStatus.ACTIVE);
+    }
+
+    @AfterEach
+    void clearAuth() {
+        SecurityContextHolder.clearContext();
     }
 
     private void authenticateAs(User user) {
@@ -241,6 +247,8 @@ public class CardServiceTest {
         CardDto result = cardService.updateCardStatus(card.getId(), CardStatus.BLOCKED);
 
         assertEquals(CardStatus.BLOCKED, result.cardStatus());
+        assertEquals(CardStatus.BLOCKED, card.getStatus());
+
     }
 
     @Test
@@ -282,7 +290,7 @@ public class CardServiceTest {
         when(cardRepository.findById(to.getId())).thenReturn(Optional.of(to));
 
         assertThrows(InsufficientFundsException.class,
-                () -> cardService.transfer(from.getId(), to.getId(), BigDecimal.valueOf(1500.1)));
+                () -> cardService.transfer(from.getId(), to.getId(), BigDecimal.valueOf(1500.01)));
     }
 
     @Test
@@ -291,6 +299,20 @@ public class CardServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> cardService.transfer(UUID.randomUUID(), UUID.randomUUID(), BigDecimal.valueOf(-1)));
+    }
+
+    @Test
+    void transfer_inactiveCard_forbidden() {
+        authenticateAs(user);
+
+        Card from = createCard(user, "8000700060005000", BigDecimal.valueOf(1500), CardStatus.BLOCKED);
+        Card to = createCard(user, "1000200030004000", BigDecimal.ZERO, CardStatus.EXPIRED);
+
+        when(cardRepository.findById(from.getId())).thenReturn(Optional.of(from));
+        when(cardRepository.findById(to.getId())).thenReturn(Optional.of(to));
+
+        assertThrows(IllegalStateException.class,
+                () -> cardService.transfer(from.getId(), to.getId(), BigDecimal.valueOf(1)));
     }
 
     @Test
