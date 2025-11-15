@@ -1,6 +1,5 @@
 package com.example.bankcards.controller;
 
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +17,8 @@ import com.example.bankcards.dto.LoginRequest;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.security.JwtUtil;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -31,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             var authToken = new UsernamePasswordAuthenticationToken(
                     loginRequest.username(),

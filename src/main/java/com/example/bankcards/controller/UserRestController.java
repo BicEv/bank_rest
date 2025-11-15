@@ -21,6 +21,8 @@ import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.UserRequest;
 import com.example.bankcards.service.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/users")
 @PreAuthorize("hasRole('ADMIN')")
@@ -33,7 +35,7 @@ public class UserRestController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserRequest userRequest) {
         UserDto createdUser = userService.createUser(userRequest);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -62,7 +64,7 @@ public class UserRestController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long userId, @RequestBody UserRequest userRequest) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequest userRequest) {
         UserDto updatedUser = userService.updateUser(userId, userRequest);
         return ResponseEntity.ok().body(updatedUser);
     }

@@ -24,6 +24,8 @@ import com.example.bankcards.dto.CardRequest;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.service.CardService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/cards")
 public class CardRestController {
@@ -36,7 +38,7 @@ public class CardRestController {
 
     @PostMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CardDto> createCard(@PathVariable Long userId, @RequestBody CardRequest cardRequest) {
+    public ResponseEntity<CardDto> createCard(@PathVariable Long userId, @Valid @RequestBody CardRequest cardRequest) {
         CardDto createdCard = cardService.createCard(userId, cardRequest);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
