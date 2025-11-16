@@ -1,0 +1,99 @@
+databaseChangeLog:
+
+  # -------------------------
+  # Таблица пользователей
+  # -------------------------
+  - changeSet:
+      id: 1
+      author: admin
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: fullname
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+  # -------------------------
+  # Таблица карт
+  # -------------------------
+  - changeSet:
+      id: 2
+      author: admin
+      changes:
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: plain_number
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: masked_number
+                  type: VARCHAR(19)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_year
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_month
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: card_status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: NUMERIC(19,2)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_cards_user_id
+            onDelete: CASCADE
