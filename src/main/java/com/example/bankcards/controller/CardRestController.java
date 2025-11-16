@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -64,14 +65,15 @@ public class CardRestController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Page<CardDto>> getUserCards(@PathVariable Long userId, Pageable pageable) {
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Page<CardDto>> getUserCards(@PathVariable Long userId,
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
         Page<CardDto> cards = cardService.getUserCards(userId, pageable);
         return ResponseEntity.ok().body(cards);
     }
 
     @PostMapping("/transfer")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> transfer(
             @RequestParam UUID fromCardId,
             @RequestParam UUID toCardId,
@@ -81,7 +83,7 @@ public class CardRestController {
     }
 
     @GetMapping("/{cardId}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<CardDto> getCardById(@PathVariable UUID cardId) {
         CardDto card = cardService.getCard(cardId);
         return ResponseEntity.ok().body(card);
