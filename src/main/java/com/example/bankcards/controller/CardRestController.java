@@ -22,9 +22,15 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.bankcards.dto.CardDto;
 import com.example.bankcards.dto.CardRequest;
+import com.example.bankcards.dto.ErrorResponse;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.service.CardService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 
 @RestController
@@ -37,9 +43,16 @@ public class CardRestController {
         this.cardService = cardService;
     }
 
+    @Operation(summary = "Создать новую карту для пользователя", description = "Создает новую карту для казанного пользователя. Доступно только для админов.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Карта успешно создана", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardDto.class))),
+            @ApiResponse(responseCode = "400", description = "Некорректные данные запроса", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CardDto> createCard(@PathVariable Long userId, @Valid @RequestBody CardRequest cardRequest) {
+    public ResponseEntity<CardDto> createCard(@PathVariable Long userId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Данные новой карты", required = true, content = @Content(schema = @Schema(implementation = CardRequest.class))) @Valid @RequestBody CardRequest cardRequest) {
         CardDto createdCard = cardService.createCard(userId, cardRequest);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -50,6 +63,11 @@ public class CardRestController {
 
     }
 
+    @Operation(summary = "Обновить статус карты", description = "Обновляет статус карты (например, BLOCKED, ACTIVE). Доступно только для админов.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статус карты успешно обновлен", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardDto.class))),
+            @ApiResponse(responseCode = "404", description = "Карта не найдена", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PutMapping("/{cardId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CardDto> updateCardStatus(@PathVariable UUID cardId, @RequestParam CardStatus cardStatus) {
@@ -57,6 +75,11 @@ public class CardRestController {
         return ResponseEntity.ok().body(updatedCard);
     }
 
+    @Operation(summary = "Удалить карту", description = "Удаляет карту по идентификатору. Доступно только для админов.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Карта успешно удалена"),
+            @ApiResponse(responseCode = "404", description = "Карта не найдена", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @DeleteMapping("/{cardId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCard(@PathVariable UUID cardId) {
@@ -64,6 +87,11 @@ public class CardRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Получить карты пользователя", description = "Возвращает постраничный список карт указанного пользователя. Доступно для админа и пользователя.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список карт получен", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Page<CardDto>> getUserCards(@PathVariable Long userId,
@@ -72,6 +100,11 @@ public class CardRestController {
         return ResponseEntity.ok().body(cards);
     }
 
+    @Operation(summary = "Перевести деньги между картами", description = "Перевод средств с одной карты на другую. Доступно для админа и пользователя.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Перевод выполнен успешно"),
+            @ApiResponse(responseCode = "400", description = "Ошибка при переводе (например, недостаточно средств)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/transfer")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> transfer(
@@ -82,6 +115,11 @@ public class CardRestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Получить карту по ID", description = "Возвращает информацию о карте по её идентификатору. Доступно для админа и пользователя.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Карта найдена", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CardDto.class))),
+            @ApiResponse(responseCode = "404", description = "Карта не найдена", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @GetMapping("/{cardId}")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<CardDto> getCardById(@PathVariable UUID cardId) {

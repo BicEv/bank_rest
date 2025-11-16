@@ -17,6 +17,11 @@ import com.example.bankcards.dto.LoginRequest;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.security.JwtUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 
 @RestController
@@ -31,8 +36,17 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
     }
 
+    @Operation(summary = "Авторизация пользователя", description = """
+            Возвращает JWT токен при успешном авторизации.
+            Доступен для всех пользователей.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Пользователь успешно авторизован", content = @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Имя пользователя или пароль неверны или возникло исключение авторизации", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Имя пользователя и пароль", required = true, content = @Content(schema = @Schema(implementation = LoginRequest.class))) @Valid @RequestBody LoginRequest loginRequest) {
         try {
             var authToken = new UsernamePasswordAuthenticationToken(
                     loginRequest.username(),
